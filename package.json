@@ -1,0 +1,22 @@
+{
+  "name": "bgboard",
+  "version": "1.0.0",
+  "description": "Twitch.tv Bot for Hearthstone Battlegrounds Leaderboard",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/henrykeane/BGBoard.git"
+  },
+  "author": "Henry Keane",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/henrykeane/BGBoard/issues"
+  },
+  "homepage": "https://github.com/henrykeane/BGBoard#readme",
+  "dependencies": {
+    "tmi.js": "^1.5.0"
+  }
+}
