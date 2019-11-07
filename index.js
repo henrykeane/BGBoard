@@ -24,6 +24,9 @@ client.on('connected', onConnectedHandler);
 // Connect to Twitch:
 client.connect();
 
+//This is set up such that you can't call upon the bot more than once every 5 seconds
+var lastCommandResponded = Date.now()-5000;
+
 // Called every time a message comes in
 function onMessageHandler (target, context, msg, self) {
   if (self) { return; } // Ignore messages from the bot
@@ -31,8 +34,16 @@ function onMessageHandler (target, context, msg, self) {
   // Remove whitespace from chat message
   const commandName = msg.trim().toLowerCase();
 
-  // If the command is known, let's execute it
-  if (commandName === '!bgleaderboard') {
+  // bgleaderboard
+  if (commandName === '!test') {
+
+    if(Date.now() >= lastCommandResponded+5000){
+        client.say(target,"BANG BANG SKEET SKEET")
+        lastCommandResponded = Date.now();
+    }else{
+        console.log("Command recognized, rate limiting");
+    }
+
     //LEADERBOARD SCRAPE
 
     // const num = rollDice();
