@@ -11,9 +11,6 @@ const opts = {
     ]
 };
 
-
-
-
 // Create a client with our options
 const client = new tmi.client(opts);
 
@@ -31,34 +28,63 @@ var lastCommandResponded = Date.now()-5000;
 function onMessageHandler (target, context, msg, self) {
   if (self) { return; } // Ignore messages from the bot
 
-  // Remove whitespace from chat message
+  //format chat message to read
   const commandName = msg.trim().toLowerCase();
 
   // bgleaderboard
   if (commandName === '!test') {
-
     if(Date.now() >= lastCommandResponded+5000){
-        client.say(target,"BANG BANG SKEET SKEET")
         lastCommandResponded = Date.now();
+        scrapeLeaderboard(client,target)
+        .then(response=>{
+            var printMe = "Success: "+response;
+            console.log(printMe);
+            client.say(target,printMe);
+        });
     }else{
         console.log("Command recognized, rate limiting");
     }
-
-    //LEADERBOARD SCRAPE
-
-    // const num = rollDice();
-    // client.say(target, `You rolled a ${num}`);
-    // console.log(`* Executed ${commandName} command`);
   }
-}
-
-// Function called when the "dice" command is issued
-function rollDice () {
-  const sides = 6;
-  return Math.floor(Math.random() * sides) + 1;
 }
 
 // Called every time the bot connects to Twitch chat
 function onConnectedHandler (addr, port) {
   console.log(`* Connected to ${addr}:${port}`);
+}
+
+const Nightmare = require('nightmare');
+const cheerio = require('cheerio');
+const URL = 'https://playhearthstone.com/en-us/community/leaderboards?region=US&leaderboardId=BG';
+// const URL = 'https://google.com/'
+function scrapeLeaderboard(client,target){
+    return new Promise((resolve, reject) => {
+        console.log("attempting nightmare scrape")
+        const nightmare = Nightmare({
+            waitTimeout: 120000,
+            gotoTimeout: 120000,
+            loadTimeout: 120000
+        });
+        nightmare.goto(URL)
+        .wait('.LeaderboardsTable-Rendered')
+        // .wait('body')
+        .evaluate(()=>document.querySelector('.LeaderboardsTable-Rendered').innerHTML)
+        .end()
+        .then(response=>{
+            // console.log(getData(response));
+            var topLeaderboard = getData(response);
+            resolve(topLeaderboard)
+        }).catch(err=>{
+            console.log(err);
+        })
+        let getData = html=>{
+            // data = [];
+            var data = "";
+            const $ = cheerio.load(html);
+            console.log($.text());
+            data = $.text().substring(0,10);
+            // data.push
+            return data;
+        }
+
+    });
 }

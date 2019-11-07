@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/henrykeane/BGBoard#readme",
   "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "nightmare": "^3.0.2",
     "tmi.js": "^1.5.0"
   }
 }
