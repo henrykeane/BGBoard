@@ -17,7 +17,12 @@ const client = new tmi.client(opts);
 // Register our event handlers (defined below)
 client.on('message', onMessageHandler);
 client.on('connected', onConnectedHandler);
+client.on('close',onCloseHandler)
 
+function onCloseHandler(){
+    console.info("Reconnecting service");
+    client.connect();
+}
 // Connect to Twitch:
 client.connect();
 
@@ -80,7 +85,28 @@ function scrapeLeaderboard(client,target){
             // data = [];
             var data = "";
             const $ = cheerio.load(html);
-            console.log($.text());
+
+            console.log($.root());
+
+            $.root().children().each(function(_i, elem) {
+                console.log(elem.text());
+            });
+
+            // $.children().each(function(_i, elem) {
+            //     if(elem.hasClass("row")){
+            //         console.log(elem.text())
+            //     }
+            //     // $(elem).find('a').attr('href');
+                
+            //     // var it = $(elem).find('a');
+            //     // var spellLink = it.attr('href');
+        
+            //     // spellLinks.push(delay(spellLink));
+                
+            //     // it = it.parent().next();
+            //     // it = it.next();
+            // });
+
             data = $.text().substring(0,10);
             // data.push
             return data;
