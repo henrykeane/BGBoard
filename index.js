@@ -89,7 +89,10 @@ function scrapeLeaderboard(client,target){
             console.log($.root());
 
             $.root().children().each(function(_i, elem) {
-                console.log(elem.text());
+                var rank = $(elem).find('col-rank').text().trim()
+                var accountid = $(elem).find('col-accountid').text().trim()
+                var rating = $(elem).find('col-rating').text().trim()
+
             });
 
             // $.children().each(function(_i, elem) {
