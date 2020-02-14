@@ -5,24 +5,27 @@ const tmi = require('tmi.js')
 const Nightmare = require('nightmare');
 const cheerio = require('cheerio');
 const URL = 'https://playhearthstone.com/en-us/community/leaderboards?region=US&leaderboardId=BG';
+var constants = require('./constants');
 
 //We don't want to spam chat, so we keep track so we only send messages once every 5 seconds
 var lastCommandResponded = 0;
 var lastData = undefined;
 
+
+//TODO: give options to a streamer to show their rank even if they're not top 3
 const playerMapping = {
-	tidesoftime:"tidesoftime"
+	// tidesoftime:"tidesoftime"
 }
 
 //options
 const opts = {
     identity:{
-        username: 'neeshbot',
-        password: 'oauth:693t9d8okhhsdnlhyjmh53jb8uhkiz'
-    },
+        username:constants.USERNAME,
+        password:constants.PASSWORD
+    },//username and oauth encapsulated in constants.js
     channels:[
         'neesh245'
-    ]
+    ]//channels where this bot is permitted
 };
 const client = new tmi.client(opts);
 
@@ -39,16 +42,16 @@ function onMessageHandler (target, context, msg, self) {
   const commandName = msg.trim().toLowerCase();
 
   // bgleaderboard
-  if (commandName === '!bgrank') {
-    if(Date.now() >= lastCommandResponded+5000){
+  if (commandName === '!rank') {
+    if(Date.now() >= lastCommandResponded+spamTimer){
 		if(Date.now() >= lastCommandResponded+refreshTimer){
 	        scrapeLeaderboard(target)
 	        .then(response=>{
-	            console.log(response);
+                console.info(response);
 	            client.say(target,response);
 	        });
 		}else{
-			console.log("past data",lastData)
+			console.info("past data",lastData)
 			client.say(target,lastData);
 		}
         lastCommandResponded = Date.now();
@@ -60,17 +63,18 @@ function onMessageHandler (target, context, msg, self) {
 
 // Called every time the bot connects to Twitch chat
 function onConnectedHandler (addr, port) {
-  console.log(`* Connected to ${addr}:${port}`);
+  console.info(`* Connected to ${addr}:${port}`);
 }
 
 function scrapeLeaderboard(target){
     return new Promise((resolve, reject) => {
         console.info("Nightmare scraping...")
-        var longasstime = 120000; //My desktop has trash spectrum internet so im setting this to an absurdly long timeout
+        var verylongtimeout = 120000;   //Awful spectrum internet, setting this to a long timeout
+                                        //TODO: Get better internet and set this to a reasonable timeout        
         const nightmare = Nightmare({
-            waitTimeout: longasstime,
-            gotoTimeout: longasstime,
-            loadTimeout: longasstime
+            waitTimeout: verylongtimeout,
+            gotoTimeout: verylongtimeout,
+            loadTimeout: verylongtimeout
         });
         nightmare.goto(URL)
         .wait('.LeaderboardsTable-Rendered')
@@ -80,7 +84,7 @@ function scrapeLeaderboard(target){
             var topLeaderboard = getData(response);
             resolve(topLeaderboard)
         }).catch(err=>{
-            console.log(err);
+            console.error(err);
         })
         let getData = html=>{
             var data = "";
@@ -94,15 +98,15 @@ function scrapeLeaderboard(target){
                 var rating = $(elem).find('.col-rating').text().trim();
 
                 //Check to see if the current channel is a special case
-                //This was created just to make sure Tides is still posted
-                //even if he's rank 4 RareParrot
+                //See above for playerMapping
                 var localChannel = false;
 				if(playerMapping.hasOwnProperty(target.substr(1))){
 					localChannel = true
 				}
 
 				//Finicky message formatting.
-				//2nd case: if localchannel is top 25 but not within topNum
+                //2nd case: if localchannel is top 25 but not within topNum
+                //This is the logic for playermapping if i decide to implement it
                 if((parseInt(rank) < topNum+1 && battletag) || localChannel){
 					var rankRow = `#${rank}: ${battletag} - ${rating}pts`
 					if(rank < topNum){
